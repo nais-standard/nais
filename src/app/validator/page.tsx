@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import type { Metadata } from 'next';
 
 type CheckStatus = 'pending' | 'loading' | 'ok' | 'warn' | 'fail';
 
@@ -10,143 +9,6 @@ interface CheckResult {
   value?: string;
   detail?: string;
 }
-
-// Mock validation responses keyed by domain
-const MOCK_RESULTS: Record<
-  string,
-  { checks: CheckResult[]; summary: 'valid' | 'partial' | 'invalid' }
-> = {
-  'weatheragent.com': {
-    summary: 'valid',
-    checks: [
-      {
-        label: 'DNS TXT record',
-        status: 'ok',
-        value: '_agent.weatheragent.com TXT found',
-        detail:
-          '"v=nais1; manifest=https://weatheragent.com/.well-known/agent.json; mcp=https://weatheragent.com/mcp; auth=wallet; pay=x402"',
-      },
-      {
-        label: 'Manifest reachable',
-        status: 'ok',
-        value: 'HTTP 200 — 518 bytes',
-        detail: 'Content-Type: application/json; CORS: *',
-      },
-      {
-        label: 'Schema validation',
-        status: 'ok',
-        value: 'NAIS 1.0 — all required fields present',
-        detail: 'name, domain, capabilities, mcp, auth, payment — all valid',
-      },
-      {
-        label: 'Domain match',
-        status: 'ok',
-        value: 'manifest.domain == DNS domain',
-        detail: 'weatheragent.com matches weatheragent.com',
-      },
-      {
-        label: 'MCP endpoint',
-        status: 'ok',
-        value: 'https://weatheragent.com/mcp — reachable',
-        detail: 'HTTP 200 — MCP handshake successful',
-      },
-      {
-        label: 'Wallet auth endpoint',
-        status: 'ok',
-        value: 'Challenge endpoint reachable',
-        detail: 'https://weatheragent.com/auth/challenge → 200 OK',
-      },
-      {
-        label: 'x402 payment',
-        status: 'ok',
-        value: 'Payment endpoint reachable',
-        detail: 'Accepts USDC, pricePerCall: 0.001',
-      },
-    ],
-  },
-  'example.com': {
-    summary: 'partial',
-    checks: [
-      {
-        label: 'DNS TXT record',
-        status: 'ok',
-        value: '_agent.example.com TXT found',
-        detail: '"v=nais1; manifest=https://example.com/.well-known/agent.json"',
-      },
-      {
-        label: 'Manifest reachable',
-        status: 'ok',
-        value: 'HTTP 200 — 290 bytes',
-        detail: 'Content-Type: application/json',
-      },
-      {
-        label: 'Schema validation',
-        status: 'warn',
-        value: 'Valid — some optional fields missing',
-        detail: 'Missing: version, updated, capabilities — not required but recommended',
-      },
-      {
-        label: 'Domain match',
-        status: 'ok',
-        value: 'manifest.domain == DNS domain',
-        detail: 'example.com matches example.com',
-      },
-      {
-        label: 'MCP endpoint',
-        status: 'warn',
-        value: 'Not configured',
-        detail: 'No mcp field in manifest — optional',
-      },
-      {
-        label: 'Wallet auth endpoint',
-        status: 'warn',
-        value: 'Not configured',
-        detail: 'auth.type = "none" — optional',
-      },
-      {
-        label: 'x402 payment',
-        status: 'warn',
-        value: 'Not configured',
-        detail: 'No payment object — optional',
-      },
-    ],
-  },
-  'notregistered.xyz': {
-    summary: 'invalid',
-    checks: [
-      {
-        label: 'DNS TXT record',
-        status: 'fail',
-        value: '_agent.notregistered.xyz — no record found',
-        detail: 'NXDOMAIN or no TXT record at _agent subdomain',
-      },
-      { label: 'Manifest reachable', status: 'pending', value: 'Skipped — DNS failed' },
-      { label: 'Schema validation', status: 'pending', value: 'Skipped — DNS failed' },
-      { label: 'Domain match', status: 'pending', value: 'Skipped — DNS failed' },
-      { label: 'MCP endpoint', status: 'pending', value: 'Skipped — DNS failed' },
-      { label: 'Wallet auth endpoint', status: 'pending', value: 'Skipped — DNS failed' },
-      { label: 'x402 payment', status: 'pending', value: 'Skipped — DNS failed' },
-    ],
-  },
-};
-
-const DEFAULT_RESULT: { checks: CheckResult[]; summary: 'valid' | 'partial' | 'invalid' } = {
-  summary: 'invalid',
-  checks: [
-    {
-      label: 'DNS TXT record',
-      status: 'fail',
-      value: 'No NAIS record found',
-      detail: 'No TXT record at _agent subdomain, or v field is not "nais1"',
-    },
-    { label: 'Manifest reachable', status: 'pending', value: 'Skipped' },
-    { label: 'Schema validation', status: 'pending', value: 'Skipped' },
-    { label: 'Domain match', status: 'pending', value: 'Skipped' },
-    { label: 'MCP endpoint', status: 'pending', value: 'Skipped' },
-    { label: 'Wallet auth endpoint', status: 'pending', value: 'Skipped' },
-    { label: 'x402 payment', status: 'pending', value: 'Skipped' },
-  ],
-};
 
 function StatusIcon({ status }: { status: CheckStatus }) {
   if (status === 'ok') {
@@ -181,7 +43,6 @@ function StatusIcon({ status }: { status: CheckStatus }) {
       </svg>
     );
   }
-  // pending
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-label="Pending">
       <circle cx="9" cy="9" r="7" stroke="#e2e8f0" strokeWidth="2" fill="none" />
@@ -214,7 +75,159 @@ function SummaryBadge({ summary }: { summary: 'valid' | 'partial' | 'invalid' })
   );
 }
 
-const DEMO_DOMAINS = ['weatheragent.com', 'example.com', 'notregistered.xyz'];
+function buildChecks(data: any): { checks: CheckResult[]; summary: 'valid' | 'partial' | 'invalid' } {
+  const checks: CheckResult[] = [];
+
+  // 1. DNS TXT record
+  const agentRecords = data.dns?.agent_records ?? [];
+  if (agentRecords.length > 0) {
+    const raw = typeof agentRecords[0] === 'string' ? agentRecords[0] : agentRecords[0]?.raw ?? '';
+    checks.push({
+      label: 'DNS TXT record',
+      status: 'ok',
+      value: `_agent.${data.domain} TXT found`,
+      detail: raw,
+    });
+  } else {
+    checks.push({
+      label: 'DNS TXT record',
+      status: 'fail',
+      value: `_agent.${data.domain} — no record found`,
+      detail: 'No TXT record at _agent subdomain',
+    });
+  }
+
+  // 2. Manifest reachable
+  if (data.manifest?.fetched && data.manifest?.http_status === 200) {
+    checks.push({
+      label: 'Manifest reachable',
+      status: 'ok',
+      value: `HTTP ${data.manifest.http_status}`,
+      detail: data.resolved?.manifest_url ?? '',
+    });
+  } else if (agentRecords.length === 0) {
+    checks.push({ label: 'Manifest reachable', status: 'pending', value: 'Skipped — DNS failed' });
+  } else {
+    checks.push({
+      label: 'Manifest reachable',
+      status: 'fail',
+      value: `HTTP ${data.manifest?.http_status ?? 'N/A'} — fetch failed`,
+      detail: data.manifest?.error ?? '',
+    });
+  }
+
+  // 3. Schema validation
+  if (data.manifest?.validation?.valid) {
+    const warnings = data.manifest.validation.warnings ?? [];
+    if (warnings.length > 0) {
+      checks.push({
+        label: 'Schema validation',
+        status: 'warn',
+        value: 'Valid — with warnings',
+        detail: warnings.join('; '),
+      });
+    } else {
+      checks.push({
+        label: 'Schema validation',
+        status: 'ok',
+        value: 'NAIS manifest — all required fields present',
+        detail: data.manifest.data?.name ? `Agent: ${data.manifest.data.name}` : '',
+      });
+    }
+  } else if (!data.manifest?.fetched) {
+    checks.push({ label: 'Schema validation', status: 'pending', value: 'Skipped — manifest not fetched' });
+  } else {
+    const errors = data.manifest?.validation?.errors ?? [];
+    checks.push({
+      label: 'Schema validation',
+      status: 'fail',
+      value: 'Manifest has validation errors',
+      detail: errors.join('; '),
+    });
+  }
+
+  // 4. Domain match
+  const manifestDomain = data.manifest?.data?.domain || data.manifest?.data?.id;
+  if (manifestDomain) {
+    const matches = manifestDomain === data.domain;
+    checks.push({
+      label: 'Domain match',
+      status: matches ? 'ok' : 'warn',
+      value: matches ? 'manifest.domain matches DNS domain' : 'Domain mismatch',
+      detail: `${manifestDomain} ${matches ? '==' : '!='} ${data.domain}`,
+    });
+  } else if (!data.manifest?.fetched) {
+    checks.push({ label: 'Domain match', status: 'pending', value: 'Skipped' });
+  } else {
+    checks.push({ label: 'Domain match', status: 'warn', value: 'No domain field in manifest' });
+  }
+
+  // 5. MCP endpoint
+  if (data.resolved?.mcp_endpoint) {
+    checks.push({
+      label: 'MCP endpoint',
+      status: 'ok',
+      value: 'Declared',
+      detail: data.resolved.mcp_endpoint,
+    });
+  } else if (!data.manifest?.fetched) {
+    checks.push({ label: 'MCP endpoint', status: 'pending', value: 'Skipped' });
+  } else {
+    checks.push({
+      label: 'MCP endpoint',
+      status: 'warn',
+      value: 'Not configured',
+      detail: 'No mcp field — optional',
+    });
+  }
+
+  // 6. Auth
+  const authMethods = data.resolved?.auth ?? [];
+  if (authMethods.length > 0 && !(authMethods.length === 1 && authMethods[0] === 'none')) {
+    checks.push({
+      label: 'Authentication',
+      status: 'ok',
+      value: authMethods.join(', '),
+    });
+  } else if (!data.manifest?.fetched) {
+    checks.push({ label: 'Authentication', status: 'pending', value: 'Skipped' });
+  } else {
+    checks.push({
+      label: 'Authentication',
+      status: 'warn',
+      value: 'Not configured',
+      detail: 'auth = none — optional',
+    });
+  }
+
+  // 7. Payments
+  const payMethods = data.resolved?.payments ?? [];
+  if (payMethods.length > 0 && !(payMethods.length === 1 && payMethods[0] === 'free')) {
+    checks.push({
+      label: 'Payment',
+      status: 'ok',
+      value: payMethods.join(', '),
+    });
+  } else if (!data.manifest?.fetched) {
+    checks.push({ label: 'Payment', status: 'pending', value: 'Skipped' });
+  } else {
+    checks.push({
+      label: 'Payment',
+      status: 'warn',
+      value: 'Not configured',
+      detail: 'No payment methods — optional',
+    });
+  }
+
+  // Determine summary
+  const hasFail = checks.some(c => c.status === 'fail');
+  const hasWarn = checks.some(c => c.status === 'warn');
+  const summary = hasFail ? 'invalid' : hasWarn ? 'partial' : 'valid';
+
+  return { checks, summary };
+}
+
+const DEMO_DOMAINS = ['weatheragent.nais.id'];
 
 export default function ValidatorPage() {
   const [domain, setDomain] = useState('');
@@ -224,6 +237,7 @@ export default function ValidatorPage() {
     checks: CheckResult[];
     summary: 'valid' | 'partial' | 'invalid';
   }>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const validate = async (target?: string) => {
     const d = (target ?? domain).trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
@@ -231,13 +245,25 @@ export default function ValidatorPage() {
     setDomain(d);
     setRunning(true);
     setResult(null);
+    setError(null);
 
-    // Simulate async validation steps
-    await new Promise((r) => setTimeout(r, 900 + Math.random() * 600));
-
-    const mockData = MOCK_RESULTS[d] ?? DEFAULT_RESULT;
-    setResult({ domain: d, ...mockData });
-    setRunning(false);
+    try {
+      const res = await fetch(
+        `https://resolver.nais.id/resolve.php?domain=${encodeURIComponent(d)}`,
+        { headers: { Accept: 'application/json' } }
+      );
+      if (!res.ok) {
+        throw new Error(`Resolver returned HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const { checks, summary } = buildChecks(data);
+      setResult({ domain: d, checks, summary });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      setError(`Failed to reach the NAIS resolver: ${msg}`);
+    } finally {
+      setRunning(false);
+    }
   };
 
   return (
@@ -275,7 +301,7 @@ export default function ValidatorPage() {
                 type="text"
                 value={domain}
                 onChange={(e) => setDomain(e.target.value)}
-                placeholder="weatheragent.com"
+                placeholder="weatheragent.nais.id"
                 className="w-full pl-9 pr-4 py-2.5 border border-slate-300 rounded-md text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder:text-slate-300"
                 spellCheck={false}
                 autoCapitalize="none"
@@ -287,14 +313,14 @@ export default function ValidatorPage() {
               disabled={running || !domain.trim()}
               className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors"
             >
-              {running ? 'Checking…' : 'Validate'}
+              {running ? 'Checking\u2026' : 'Validate'}
             </button>
           </form>
           <p className="mt-2 text-xs text-slate-400">
-            Try a demo domain:{' '}
+            Try:{' '}
             {DEMO_DOMAINS.map((d, i) => (
               <span key={d}>
-                {i > 0 && <span className="mx-1 text-slate-300">·</span>}
+                {i > 0 && <span className="mx-1 text-slate-300">&middot;</span>}
                 <button
                   onClick={() => validate(d)}
                   className="font-mono hover:text-blue-600 underline underline-offset-2"
@@ -311,7 +337,7 @@ export default function ValidatorPage() {
           <div className="rounded-lg border border-slate-200 overflow-hidden">
             <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
               <span className="text-sm font-mono text-slate-500">{domain}</span>
-              <span className="text-xs text-slate-400 animate-pulse">Resolving…</span>
+              <span className="text-xs text-slate-400 animate-pulse">Resolving via resolver.nais.id&hellip;</span>
             </div>
             {Array.from({ length: 7 }).map((_, i) => (
               <div key={i} className="flex items-center gap-3 px-5 py-3.5 border-b border-slate-100 last:border-0">
@@ -322,6 +348,14 @@ export default function ValidatorPage() {
           </div>
         )}
 
+        {/* Error */}
+        {error && !running && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-5 py-4">
+            <p className="text-sm font-medium text-red-800">Resolver error</p>
+            <p className="text-sm text-red-600 mt-0.5">{error}</p>
+          </div>
+        )}
+
         {/* Results */}
         {result && !running && (
           <div className="rounded-lg border border-slate-200 overflow-hidden">
@@ -329,7 +363,7 @@ export default function ValidatorPage() {
             <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <code className="font-mono text-sm font-medium text-slate-700">{result.domain}</code>
-                <span className="text-slate-300">—</span>
+                <span className="text-slate-300">&mdash;</span>
                 <SummaryBadge summary={result.summary} />
               </div>
               <button
@@ -379,14 +413,14 @@ export default function ValidatorPage() {
                 Checked at {new Date().toLocaleTimeString()}
               </span>
               <span className="text-xs text-slate-400">
-                Demo mode — connect a backend for real DNS resolution
+                Resolved via resolver.nais.id
               </span>
             </div>
           </div>
         )}
 
         {/* Info section */}
-        {!running && !result && (
+        {!running && !result && !error && (
           <div className="mt-8 border-t border-slate-100 pt-8">
             <h2 className="text-base font-semibold text-slate-700 mb-4">What the validator checks</h2>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -409,11 +443,11 @@ export default function ValidatorPage() {
                 },
                 {
                   title: 'MCP Endpoint',
-                  desc: 'If an MCP URL is present, checks reachability and attempts an MCP capability handshake.',
+                  desc: 'If an MCP URL is present, checks that it is declared and reachable.',
                 },
                 {
                   title: 'Auth & Payment',
-                  desc: 'Checks that auth and payment endpoints are reachable if configured. Does not perform actual auth or payments.',
+                  desc: 'Checks whether auth and payment methods are declared in the DNS record and manifest.',
                 },
               ].map(({ title, desc }) => (
                 <div
