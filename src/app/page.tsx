@@ -114,7 +114,7 @@ export default function HomePage() {
               <span className="text-slate-900 font-medium">Agents should too.</span>
             </p>
             <p className="text-base text-slate-500 leading-relaxed mb-8 max-w-2xl">
-              NAIS is an open standard for publishing AI agent identity, discovery, capabilities,
+              The Network Agent Identity Standard (NAIS) is an open standard for publishing AI agent identity, discovery, capabilities,
               and optional authentication and payment information using DNS and HTTPS.
             </p>
             <div className="flex flex-wrap gap-3">
