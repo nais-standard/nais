@@ -1,0 +1,51 @@
+{
+  "_comment": "This manifest is intentionally invalid for testing validators against the NAIS schema.",
+
+  "standard": "nais-wrong",
+  "id": "",
+  "name": "",
+
+  "owner": {
+    "wallet": "not-a-valid-address",
+    "wallets": [
+      {
+        "address": "0xabc"
+      }
+    ],
+    "extra_field": true
+  },
+
+  "auth": {
+    "methods": ["telepathy", "none"],
+    "challenge_endpoint": "not a uri"
+  },
+
+  "capabilities": [
+    {
+      "name": "Invalid Name With Spaces",
+      "pricing": {
+        "model": "barter"
+      }
+    },
+    {
+      "description": "Missing required name field"
+    }
+  ],
+
+  "payment": {
+    "methods": ["bitcoin"],
+    "x402": {
+      "payment_address": "bad-address"
+    }
+  },
+
+  "proofs": [
+    {
+      "type": "blockchain-magic",
+      "verified_at": "last tuesday"
+    }
+  ],
+
+  "updated_at": "not-a-date",
+  "secret_field": "should not be here"
+}

@@ -1,0 +1,156 @@
+{
+  "standard": "nais/0.1",
+  "id": "weatheragent.com",
+  "name": "WeatherAgent",
+  "description": "A NAIS-compliant weather agent providing current conditions, multi-day forecasts, and severe weather alerts for any location worldwide.",
+  "version": "1.0.0",
+  "owner": {
+    "name": "WeatherAgent Inc.",
+    "url": "https://weatheragent.com",
+    "contact": "hello@weatheragent.com",
+    "type": "wallet",
+    "wallet": "0x742d35Cc6634C0532925a3b8D4C9B7F1A2e3d4E5",
+    "wallets": [
+      {
+        "chain": "eip155:1",
+        "address": "0x742d35Cc6634C0532925a3b8D4C9B7F1A2e3d4E5"
+      },
+      {
+        "chain": "eip155:8453",
+        "address": "0x742d35Cc6634C0532925a3b8D4C9B7F1A2e3d4E5"
+      }
+    ]
+  },
+  "service": {
+    "mcp_endpoint": "https://weatheragent.com/mcp",
+    "api_endpoint": "https://weatheragent.com/api/v1",
+    "health_endpoint": "https://weatheragent.com/health",
+    "status_endpoint": "https://weatheragent.com/status",
+    "docs_url": "https://weatheragent.com/docs"
+  },
+  "auth": {
+    "methods": ["none", "wallet-signature"],
+    "wallet_chains": ["ethereum", "base"],
+    "challenge_endpoint": "https://weatheragent.com/auth/challenge",
+    "verify_endpoint": "https://weatheragent.com/auth/verify",
+    "notes": "Public endpoints are available without auth. Historical data requires wallet signature."
+  },
+  "capabilities": [
+    {
+      "name": "current_weather",
+      "description": "Get real-time current weather conditions for any location. Returns temperature, humidity, wind, and more.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string",
+            "description": "City name, 'City, Country', or lat/lon coordinates"
+          },
+          "units": {
+            "type": "string",
+            "enum": ["metric", "imperial"],
+            "default": "metric"
+          }
+        },
+        "required": ["location"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "condition": { "type": "string" },
+          "temperature": { "type": "number" },
+          "humidity": { "type": "integer" },
+          "wind_speed": { "type": "number" }
+        }
+      },
+      "pricing": {
+        "model": "per-call",
+        "amount": "0.0005",
+        "currency": "USDC",
+        "free_tier": true
+      }
+    },
+    {
+      "name": "forecast",
+      "description": "Multi-day weather forecast with daily highs, lows, precipitation, and conditions.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 5
+          }
+        },
+        "required": ["location"]
+      },
+      "output_schema": {
+        "type": "object",
+        "properties": {
+          "forecast": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": { "type": "string" },
+                "condition": { "type": "string" },
+                "temp_high": { "type": "number" },
+                "temp_low": { "type": "number" }
+              }
+            }
+          }
+        }
+      },
+      "pricing": {
+        "model": "per-call",
+        "amount": "0.001",
+        "currency": "USDC",
+        "free_tier": true
+      }
+    }
+  ],
+  "payment": {
+    "methods": ["x402", "free"],
+    "free_tier": {
+      "calls_per_day": 100,
+      "calls_per_minute": 10,
+      "capabilities": ["current_weather", "forecast"]
+    },
+    "x402": {
+      "endpoint": "https://weatheragent.com/pay",
+      "currencies": ["USDC", "ETH"],
+      "price_per_call": {
+        "current_weather": "0.0005",
+        "forecast": "0.001"
+      },
+      "free_quota": 100,
+      "chain": "base",
+      "chain_id": 8453,
+      "payment_address": "0x742d35Cc6634C0532925a3b8D4C9B7F1A2e3d4E5"
+    }
+  },
+  "proofs": [
+    {
+      "type": "dns-wallet-binding",
+      "record": "_wallet.weatheragent.com"
+    },
+    {
+      "type": "dns-txt",
+      "record": "_agent.weatheragent.com",
+      "verified_at": "2026-03-18T00:00:00Z"
+    }
+  ],
+  "tags": ["weather", "forecast", "alerts", "geospatial"],
+  "license": "MIT",
+  "contact": {
+    "email": "support@weatheragent.com",
+    "url": "https://weatheragent.com",
+    "issues": "https://github.com/weatheragent/agent/issues"
+  },
+  "source": "https://github.com/weatheragent/agent",
+  "updated_at": "2026-03-18T00:00:00Z"
+}
