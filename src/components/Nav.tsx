@@ -9,6 +9,7 @@ const links = [
   { href: '/demo', label: 'Demo' },
   { href: '/validate', label: 'Validate' },
   { href: '/sdks', label: 'SDKs' },
+  { href: 'https://agents.nais.id', label: 'Discover Agents', external: true },
   { href: '/governance', label: 'Governance' },
   { href: '/faq', label: 'FAQ' },
 ];
@@ -48,7 +49,20 @@ export default function Nav() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {links.map(({ href, label }) => {
+            {links.map(({ href, label, external }) => {
+              if (external) {
+                return (
+                  <a
+                    key={href}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  >
+                    {label}
+                  </a>
+                );
+              }
               const active = pathname === href || pathname.startsWith(href + '/');
               return (
                 <Link
@@ -98,7 +112,20 @@ export default function Nav() {
           style={{ borderTop: '1px solid #e2e8f0' }}
         >
           <nav className="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-0.5">
-            {links.map(({ href, label }) => {
+            {links.map(({ href, label, external }) => {
+              if (external) {
+                return (
+                  <a
+                    key={href}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 rounded-md text-sm font-medium transition-colors text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                  >
+                    {label}
+                  </a>
+                );
+              }
               const active = pathname === href || pathname.startsWith(href + '/');
               return (
                 <Link
