@@ -467,9 +467,13 @@ function ValidateInner() {
                 )}
 
                 <div className="flex items-center gap-2 mt-2">
-                  {result.manifest.validation.valid ? <IconOk /> : <IconFail />}
+                  {result.manifest.validation?.valid ? <IconOk /> : <IconFail />}
                   <span className="text-sm text-slate-700">
-                    {result.manifest.validation.valid ? 'Manifest is valid' : 'Manifest has validation errors'}
+                    {result.manifest.validation === null
+                      ? 'Manifest could not be validated'
+                      : result.manifest.validation.valid
+                      ? 'Manifest is valid'
+                      : 'Manifest has validation errors'}
                   </span>
                 </div>
               </div>
@@ -548,7 +552,7 @@ function ValidateInner() {
             })()}
 
             {/* 6. Validation Messages */}
-            {(result.manifest.validation.errors.length > 0 || result.manifest.validation.warnings.length > 0) && (
+            {result.manifest.validation && (result.manifest.validation.errors.length > 0 || result.manifest.validation.warnings.length > 0) && (
               <Section title="Validation Messages">
                 <div className="space-y-2">
                   {result.manifest.validation.errors.map((err, i) => (
