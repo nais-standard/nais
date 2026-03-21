@@ -150,7 +150,7 @@ export default function QuickstartPage() {
           reflects what the agent does. You can use:
         </p>
         <ul>
-          <li>A brand-new domain registered just for this agent (e.g. <code>weatheragent.com</code>)</li>
+          <li>A brand-new domain registered just for this agent (e.g. <code>weatheragent.link</code>)</li>
           <li>A subdomain of an existing domain (e.g. <code>agent.yourcompany.com</code>)</li>
           <li>An internal domain for enterprise agents (e.g. <code>procurement-agent.corp</code>)</li>
         </ul>

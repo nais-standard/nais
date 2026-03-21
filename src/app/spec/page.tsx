@@ -148,7 +148,7 @@ export default function SpecPage() {
             </tr>
             <tr>
               <td><code>Agent Domain</code></td>
-              <td>The fully-qualified domain name used as the agent&apos;s canonical identifier (e.g. <code>weatheragent.com</code>).</td>
+              <td>The fully-qualified domain name used as the agent&apos;s canonical identifier (e.g. <code>weatheragent.link</code>).</td>
             </tr>
             <tr>
               <td><code>NAIS Record</code></td>

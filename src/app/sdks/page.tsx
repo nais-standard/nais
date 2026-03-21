@@ -6,10 +6,10 @@ const JS_INSTALL = `npm install @nais/sdk`;
 const JS_RESOLVE = `import { resolve } from '@nais/sdk';
 
 // Basic resolution
-const agent = await resolve('weatheragent.com');
+const agent = await resolve('weatheragent.link');
 console.log(agent.name);         // "Weather Agent"
 console.log(agent.capabilities); // ["forecast", "historical", "alerts"]
-console.log(agent.mcp);          // "https://weatheragent.com/mcp"
+console.log(agent.mcp);          // "https://weatheragent.link/mcp"
 
 // Call a capability
 const result = await agent.call('forecast', {
@@ -54,10 +54,10 @@ const PY_INSTALL = `pip install nais-sdk`;
 const PY_RESOLVE = `from nais import resolve
 
 # Basic resolution
-agent = resolve("weatheragent.com")
+agent = resolve("weatheragent.link")
 print(agent.name)          # "Weather Agent"
 print(agent.capabilities)  # ["forecast", "historical", "alerts"]
-print(agent.mcp)           # "https://weatheragent.com/mcp"
+print(agent.mcp)           # "https://weatheragent.link/mcp"
 
 # Call a capability
 result = agent.call("forecast", location="New York", days=3)
@@ -81,7 +81,7 @@ const PY_ASYNC = `import asyncio
 from nais.asyncio import resolve
 
 async def main():
-    agent = await resolve("weatheragent.com")
+    agent = await resolve("weatheragent.link")
     result = await agent.call("forecast", location="Tokyo")
     print(result.summary)
 
@@ -92,7 +92,7 @@ const PHP_RESOLVE = `<?php
 use Nais\\Sdk\\Resolver;
 
 $resolver = new Resolver();
-$agent = $resolver->resolve('weatheragent.com');
+$agent = $resolver->resolve('weatheragent.link');
 
 echo $agent->getName();            // "Weather Agent"
 print_r($agent->getCapabilities()); // ["forecast", "historical"]
@@ -125,7 +125,7 @@ import (
 )
 
 func main() {
-    agent, err := nais.Resolve("weatheragent.com")
+    agent, err := nais.Resolve("weatheragent.link")
     if err != nil {
         panic(err)
     }

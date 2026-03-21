@@ -8,34 +8,34 @@ export const metadata: Metadata = {
     'NAIS is an open standard for publishing AI agent identity, discovery, capabilities, and optional authentication using DNS and HTTPS. Websites use domains. Agents should too.',
 };
 
-const DNS_EXAMPLE = `_agent.weatheragent.com  IN  TXT  "v=nais1; manifest=https://weatheragent.com/.well-known/agent.json; mcp=https://weatheragent.com/mcp; auth=wallet; pay=x402"`;
+const DNS_EXAMPLE = `_agent.weatheragent.link  IN  TXT  "v=nais1; manifest=https://weatheragent.link/.well-known/agent.json; mcp=https://weatheragent.link/mcp; auth=wallet; pay=x402"`;
 
 const MANIFEST_EXAMPLE = `{
   "nais": "1.0",
   "name": "Weather Agent",
   "description": "Real-time weather forecasting and alerts",
-  "domain": "weatheragent.com",
+  "domain": "weatheragent.link",
   "version": "2.1.0",
-  "mcp": "https://weatheragent.com/mcp",
+  "mcp": "https://weatheragent.link/mcp",
   "auth": {
     "type": "wallet",
     "chains": ["ethereum", "solana"]
   },
   "payment": {
     "type": "x402",
-    "endpoint": "https://weatheragent.com/pay",
+    "endpoint": "https://weatheragent.link/pay",
     "currencies": ["USDC"],
     "pricePerCall": "0.001"
   },
   "capabilities": ["forecast", "historical", "alerts", "radar"],
-  "contact": "agent@weatheragent.com",
+  "contact": "agent@weatheragent.link",
   "license": "MIT"
 }`;
 
 const PYTHON_EXAMPLE = `from nais import resolve
 
 # Discover any agent by domain
-agent = resolve("weatheragent.com")
+agent = resolve("weatheragent.link")
 
 # Inspect capabilities
 print(agent.capabilities)
@@ -81,7 +81,7 @@ const PROBLEMS = [
 
 const BENEFITS = [
   { label: 'Open and registrar-agnostic', desc: 'Works with any domain from any registrar worldwide.' },
-  { label: 'Human-readable identity', desc: 'weatheragent.com is more trustworthy than a UUID.' },
+  { label: 'Human-readable identity', desc: 'weatheragent.link is more trustworthy than a UUID.' },
   { label: 'DNS + HTTPS native', desc: 'No new infrastructure. Runs on the existing internet.' },
   { label: 'Optional wallet auth', desc: 'Cryptographic proof of agent ownership without passwords.' },
   { label: 'Optional machine payments', desc: 'x402 support for metered, autonomous agent billing.' },
@@ -89,8 +89,8 @@ const BENEFITS = [
 ];
 
 const STEPS = [
-  { n: '01', title: 'Agent gets a domain', body: 'weatheragent.com — same as any website, from any registrar.' },
-  { n: '02', title: 'Domain publishes a TXT record', body: '_agent.weatheragent.com TXT record anchors the identity in DNS.' },
+  { n: '01', title: 'Agent gets a domain', body: 'weatheragent.link — same as any website, from any registrar.' },
+  { n: '02', title: 'Domain publishes a TXT record', body: '_agent.weatheragent.link TXT record anchors the identity in DNS.' },
   { n: '03', title: 'Domain serves /.well-known/agent.json', body: 'A JSON manifest describes capabilities, endpoints, and auth.' },
   { n: '04', title: 'Other agents discover and connect', body: 'Any client can resolve the domain and call the MCP or API endpoint.' },
 ];
@@ -213,7 +213,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <div className="inline-block font-mono text-sm font-medium text-blue-400 mb-3">
-              weatheragent.com
+              weatheragent.link
             </div>
             <h2 className="text-2xl font-semibold text-white mb-3">See it in practice</h2>
             <p className="text-slate-400 max-w-xl leading-relaxed">
@@ -242,7 +242,7 @@ export default function HomePage() {
                   style={{ fontFamily: 'var(--font-mono)' }}
                 >
                   <code>
-                    <span className="tok-dns-field">_agent.weatheragent.com</span>
+                    <span className="tok-dns-field">_agent.weatheragent.link</span>
                     {'  '}
                     <span className="tok-type">IN</span>
                     {'  '}
@@ -256,12 +256,12 @@ export default function HomePage() {
                     {'\n   '}
                     <span className="tok-dns-field">manifest</span>
                     <span className="tok-dns-sep">=</span>
-                    <span className="tok-dns-value">https://weatheragent.com/.well-known/agent.json</span>
+                    <span className="tok-dns-value">https://weatheragent.link/.well-known/agent.json</span>
                     <span className="tok-dns-sep">;</span>
                     {'\n   '}
                     <span className="tok-dns-field">mcp</span>
                     <span className="tok-dns-sep">=</span>
-                    <span className="tok-dns-value">https://weatheragent.com/mcp</span>
+                    <span className="tok-dns-value">https://weatheragent.link/mcp</span>
                     <span className="tok-dns-sep">;</span>
                     {'\n   '}
                     <span className="tok-dns-field">auth</span>
