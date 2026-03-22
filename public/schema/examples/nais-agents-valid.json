@@ -1,0 +1,61 @@
+{
+  "nais_version": "1.1",
+  "domain": "example.com",
+  "default_agent": "support.example.com",
+  "agents": [
+    {
+      "id": "support.example.com",
+      "scope": "local",
+      "name": "Support Agent",
+      "description": "Handles customer support inquiries, FAQs, and ticket routing.",
+      "manifest_url": "https://example.com/.well-known/agents/support/agent.json",
+      "mcp_endpoint": "https://example.com/mcp/support",
+      "tags": ["support", "customer-service"],
+      "status": "active"
+    },
+    {
+      "id": "sales.example.com",
+      "scope": "local",
+      "name": "Sales Agent",
+      "description": "Helps visitors choose products, compare pricing, and start trials.",
+      "manifest_url": "https://example.com/.well-known/agents/sales/agent.json",
+      "mcp_endpoint": "https://example.com/mcp/sales",
+      "tags": ["sales", "pricing"],
+      "status": "active"
+    },
+    {
+      "id": "booking.example.com",
+      "scope": "local",
+      "name": "Booking Agent",
+      "description": "Manages appointment scheduling and calendar availability.",
+      "manifest_url": "https://example.com/.well-known/agents/booking/agent.json",
+      "tags": ["booking", "scheduling"],
+      "status": "beta"
+    }
+  ],
+  "linked_agents": [
+    {
+      "id": "weatheragent.nais.id",
+      "scope": "external",
+      "name": "Weather Agent",
+      "description": "Provides live weather information for location-based services.",
+      "manifest_url": "https://weatheragent.nais.id/.well-known/agent.json",
+      "relationship": "partner",
+      "verified": true,
+      "tags": ["weather", "geospatial"]
+    },
+    {
+      "id": "payments.partner.com",
+      "scope": "external",
+      "name": "Payment Processor",
+      "description": "Handles x402 payment flows for premium agent capabilities.",
+      "relationship": "provider",
+      "verified": true
+    }
+  ],
+  "metadata": {
+    "organization": "Example Corp",
+    "contact": "agents@example.com",
+    "updated_at": "2026-03-22T00:00:00Z"
+  }
+}

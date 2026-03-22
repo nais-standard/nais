@@ -1,14 +1,16 @@
-# NAIS Agent Manifest Schema
+# NAIS Schemas
 
-The canonical JSON Schema for the **Network Agent Identity Standard (NAIS)** agent manifest.
+Canonical JSON Schemas for the **Network Agent Identity Standard (NAIS)**.
 
 ## Published At
 
 | Resource | URL |
 |----------|-----|
-| Schema | `https://nais.id/schema/agent.json` |
-| Valid example | `https://nais.id/schema/examples/agent-valid.json` |
-| Invalid example | `https://nais.id/schema/examples/agent-invalid.json` |
+| Agent Manifest Schema | `https://nais.id/schema/agent.json` |
+| Domain Discovery Schema | `https://nais.id/schema/nais-agents.json` |
+| Agent Manifest Example | `https://nais.id/schema/examples/agent-valid.json` |
+| Agent Manifest Invalid | `https://nais.id/schema/examples/agent-invalid.json` |
+| Domain Discovery Example | `https://nais.id/schema/examples/nais-agents-valid.json` |
 
 ## What It Validates
 
@@ -143,6 +145,55 @@ https://nais.id/schema/agent.json#/$defs/WalletIdentity
 2. **No unknown top-level properties.** The schema uses `additionalProperties: false` at the top level to catch typos and discourage ad-hoc extensions.
 3. **Forward-compatible.** New optional fields can be added without breaking existing manifests. Breaking changes require a new `standard` version.
 4. **Wallet-native.** Wallet identity and payment are first-class schema concepts, not afterthoughts.
+
+## Domain Discovery Schema (NAIS 1.1)
+
+Starting with NAIS 1.1, domains can publish a discovery document at:
+
+```
+https://<domain>/.well-known/nais-agents.json
+```
+
+This enables:
+- **Multiple local agents** — a domain can declare support, sales, booking, and other agents
+- **Linked external agents** — explicit references to trusted partner agents on other domains
+- **Default agent** — which agent to use when no specific agent is requested
+
+### Required Fields
+
+| Field | Description |
+|-------|-------------|
+| `nais_version` | Protocol version (e.g., `"1.1"`) |
+| `domain` | Canonical domain publishing this document |
+| `agents` | Array of local agent entries (at least one) |
+
+### Agent Entry Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | Agent identifier (e.g., `"support.example.com"`) |
+| `name` | Yes | Human-readable name |
+| `manifest_url` | Yes | HTTPS URL to the agent's full manifest |
+| `scope` | No | Always `"local"` for agents in the `agents` array |
+| `description` | No | Brief description |
+| `mcp_endpoint` | No | MCP endpoint shortcut |
+| `tags` | No | Categorization tags |
+| `status` | No | `"active"`, `"beta"`, `"deprecated"`, or `"maintenance"` |
+
+### Linked Agent Entry Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `id` | Yes | External agent's domain identifier |
+| `name` | Yes | Human-readable name |
+| `scope` | No | Always `"external"` for linked agents |
+| `manifest_url` | No | URL to the external agent's manifest |
+| `relationship` | No | `"partner"`, `"provider"`, `"affiliate"`, `"fallback"`, `"recommended"` |
+| `verified` | No | Whether the domain operator has verified the external agent |
+
+### Backward Compatibility
+
+The domain discovery document is **optional**. Domains with a single agent can continue using only `agent.json` at `/.well-known/agent.json`. The resolver checks for `nais-agents.json` in addition to the existing `agent.json` flow — both work independently.
 
 ## Related Resources
 

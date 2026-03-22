@@ -17,6 +17,9 @@ const NAV = [
   { id: 'dns-optional', label: 'Optional fields', indent: true },
   { id: 'manifest', label: 'agent.json Manifest' },
   { id: 'manifest-fields', label: 'Field reference', indent: true },
+  { id: 'multi-agent', label: 'Multi-Agent Discovery' },
+  { id: 'multi-agent-schema', label: 'nais-agents.json', indent: true },
+  { id: 'multi-agent-linked', label: 'Linked agents', indent: true },
   { id: 'mcp', label: 'MCP Endpoint' },
   { id: 'auth', label: 'Wallet Auth Flow' },
   { id: 'payment', label: 'x402 Payment Flow' },
@@ -300,6 +303,109 @@ export default function SpecPage() {
             <tr><td><code>source</code></td><td>string (URL)</td><td>No</td><td>URL to the agent source code.</td></tr>
           </tbody>
         </table>
+      </section>
+
+      {/* Multi-Agent Discovery */}
+      <section id="multi-agent">
+        <h2>Multi-Agent Discovery (NAIS 1.1)</h2>
+        <p>
+          Starting with NAIS 1.1, a domain MAY publish a discovery document at{' '}
+          <code>/.well-known/nais-agents.json</code> to declare multiple agents and reference
+          external partner agents. This is the <strong>domain-level discovery layer</strong> —
+          it sits above individual agent manifests and provides an index of all agents associated
+          with a domain.
+        </p>
+        <p>
+          This document is <strong>optional</strong>. Domains with a single agent can continue
+          using only <code>/.well-known/agent.json</code>. The resolver checks for both files
+          independently.
+        </p>
+
+        <h3 id="multi-agent-schema">nais-agents.json Schema</h3>
+        <p>
+          The discovery document declares local agents and linked external agents:
+        </p>
+        <pre><code>{`{
+  "nais_version": "1.1",
+  "domain": "example.com",
+  "default_agent": "support.example.com",
+  "agents": [
+    {
+      "id": "support.example.com",
+      "scope": "local",
+      "name": "Support Agent",
+      "description": "Handles customer support and FAQs.",
+      "manifest_url": "https://example.com/.well-known/agents/support/agent.json",
+      "mcp_endpoint": "https://example.com/mcp/support",
+      "tags": ["support"],
+      "status": "active"
+    },
+    {
+      "id": "sales.example.com",
+      "scope": "local",
+      "name": "Sales Agent",
+      "description": "Helps visitors choose products and pricing.",
+      "manifest_url": "https://example.com/.well-known/agents/sales/agent.json",
+      "status": "active"
+    }
+  ],
+  "linked_agents": [
+    {
+      "id": "weatheragent.nais.id",
+      "scope": "external",
+      "name": "Weather Agent",
+      "relationship": "partner",
+      "verified": true
+    }
+  ]
+}`}</code></pre>
+        <p>Required fields:</p>
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>nais_version</code></td><td>string</td><td>Protocol version (e.g., &quot;1.1&quot;)</td></tr>
+            <tr><td><code>domain</code></td><td>string</td><td>Canonical domain publishing this document</td></tr>
+            <tr><td><code>agents</code></td><td>array</td><td>At least one local agent entry</td></tr>
+          </tbody>
+        </table>
+        <p>Each agent entry requires <code>id</code>, <code>name</code>, and <code>manifest_url</code>.</p>
+        <p>
+          The <code>default_agent</code> field specifies which agent ID to use when no specific
+          agent is requested. This enables graceful routing — a domain can expose a &quot;front desk&quot;
+          agent while maintaining specialized agents for specific tasks.
+        </p>
+
+        <h3 id="multi-agent-linked">Linked External Agents</h3>
+        <p>
+          The <code>linked_agents</code> array allows a domain to explicitly reference agents hosted
+          on other domains. Each entry includes a <code>relationship</code> field indicating the nature
+          of the link:
+        </p>
+        <table>
+          <thead>
+            <tr><th>Relationship</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>partner</code></td><td>Mutual integration or business partnership</td></tr>
+            <tr><td><code>provider</code></td><td>External service provider (e.g., payments, data)</td></tr>
+            <tr><td><code>affiliate</code></td><td>Referral or affiliate relationship</td></tr>
+            <tr><td><code>fallback</code></td><td>Used when local agents are unavailable</td></tr>
+            <tr><td><code>recommended</code></td><td>Suggested complementary agent</td></tr>
+          </tbody>
+        </table>
+        <p>
+          The <code>verified</code> boolean indicates whether the domain operator has confirmed
+          the external agent&apos;s identity. Clients SHOULD treat unverified linked agents with
+          lower trust than verified ones.
+        </p>
+        <p>
+          <strong>Schema:</strong>{' '}
+          <a href="https://nais.id/schema/nais-agents.json" target="_blank" rel="noopener noreferrer">
+            https://nais.id/schema/nais-agents.json
+          </a>
+        </p>
       </section>
 
       {/* MCP */}
