@@ -46,6 +46,67 @@ result = agent.call("forecast", location="Miami", days=5)
 print(result.summary)
 # → "Sunny, 84°F, low humidity through the weekend"`;
 
+const MULTI_AGENT_EXAMPLE = `{
+  "nais_version": "1.1",
+  "domain": "example.com",
+  "default_agent": "support.example.com",
+  "agents": [
+    {
+      "id": "support.example.com",
+      "name": "Support Agent",
+      "manifest_url": "https://example.com/.well-known/agents/support/agent.json",
+      "status": "active"
+    },
+    {
+      "id": "sales.example.com",
+      "name": "Sales Agent",
+      "manifest_url": "https://example.com/.well-known/agents/sales/agent.json",
+      "status": "active"
+    },
+    {
+      "id": "booking.example.com",
+      "name": "Booking Agent",
+      "manifest_url": "https://example.com/.well-known/agents/booking/agent.json",
+      "status": "beta"
+    }
+  ],
+  "linked_agents": [
+    {
+      "id": "weatheragent.link",
+      "name": "Weather Agent",
+      "relationship": "partner",
+      "verified": true
+    },
+    {
+      "id": "payments.provider.com",
+      "name": "Payment Processor",
+      "relationship": "provider",
+      "verified": true
+    }
+  ]
+}`;
+
+const RESOLVE_MULTI_EXAMPLE = `from nais import resolve_domain
+
+# Discover all agents on a domain
+domain = resolve_domain("example.com")
+
+# List available agents
+for agent in domain.agents:
+    print(f"{agent.name} — {agent.status}")
+# → Support Agent — active
+# → Sales Agent — active
+# → Booking Agent — beta
+
+# Use the default agent
+default = domain.default_agent
+result = default.call("help", query="reset my password")
+
+# Access a linked partner agent
+weather = domain.linked_agents[0]
+print(f"Partner: {weather.name} ({weather.relationship})")
+# → Partner: Weather Agent (partner)`;
+
 const PROBLEMS = [
   {
     icon: (
@@ -290,6 +351,61 @@ export default function HomePage() {
                 3 — Resolve &amp; Call
               </div>
               <CodeBlock code={PYTHON_EXAMPLE} language="python" filename="discover.py" />
+            </div>
+          </div>
+
+          {/* Multi-Agent Discovery */}
+          <div className="mt-12 pt-10" style={{ borderTop: '1px solid #1e293b' }}>
+            <div className="mb-8">
+              <div className="inline-flex items-center gap-2 mb-3 px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: '#1e3a5f', color: '#93c5fd' }}>
+                NAIS 1.1
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Multiple agents per domain</h3>
+              <p className="text-slate-400 max-w-2xl leading-relaxed">
+                A single domain can publish multiple agents — support, sales, booking — and link to trusted external agents
+                on other domains. The new <code className="text-blue-400 text-sm">/.well-known/nais-agents.json</code> discovery
+                document indexes all agents and defines a default.
+              </p>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-4">
+              <div>
+                <div className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-2">
+                  Domain Discovery Index
+                </div>
+                <CodeBlock code={MULTI_AGENT_EXAMPLE} language="json" filename="/.well-known/nais-agents.json" />
+              </div>
+
+              <div>
+                <div className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-2">
+                  Discover All Agents on a Domain
+                </div>
+                <CodeBlock code={RESOLVE_MULTI_EXAMPLE} language="python" filename="multi_agent.py" />
+              </div>
+            </div>
+
+            <div className="mt-6 grid sm:grid-cols-3 gap-4">
+              <div className="rounded-lg p-4" style={{ background: '#0d1117', border: '1px solid #21262d' }}>
+                <div className="text-sm font-medium text-white mb-1">Local Agents</div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Declare support, sales, booking, or any number of specialized agents under one domain.
+                  Each has its own manifest and MCP endpoint.
+                </p>
+              </div>
+              <div className="rounded-lg p-4" style={{ background: '#0d1117', border: '1px solid #21262d' }}>
+                <div className="text-sm font-medium text-white mb-1">Linked External Agents</div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Reference trusted partner agents on other domains with relationship types:
+                  partner, provider, affiliate, fallback, or recommended.
+                </p>
+              </div>
+              <div className="rounded-lg p-4" style={{ background: '#0d1117', border: '1px solid #21262d' }}>
+                <div className="text-sm font-medium text-white mb-1">Default Agent Routing</div>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Set a default agent that handles requests when no specific agent is named —
+                  like a front desk for your domain.
+                </p>
+              </div>
             </div>
           </div>
         </div>
