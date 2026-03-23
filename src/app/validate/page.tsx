@@ -19,6 +19,18 @@ interface AgentRecord {
   parsed: ParsedRecord;
 }
 
+interface LinkedAgent {
+  domain: string;
+  role?: string;
+  verified?: boolean;
+  [key: string]: unknown;
+}
+
+interface NaisAgents {
+  linked_agents?: LinkedAgent[];
+  [key: string]: unknown;
+}
+
 interface ResolverResponse {
   ok: boolean;
   cached: boolean;
@@ -205,6 +217,8 @@ function ValidateInner() {
   const [domain, setDomain] = useState<string>(searchParams.get('domain') ?? '');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ResolverResponse | null>(null);
+  const [naisAgents, setNaisAgents] = useState<NaisAgents | null>(null);
+  const [naisAgentsError, setNaisAgentsError] = useState<string | null>(null);
   const [networkError, setNetworkError] = useState<string | null>(null);
   const [rawOpen, setRawOpen] = useState(false);
 
@@ -215,6 +229,8 @@ function ValidateInner() {
     setDomain(trimmed);
     setLoading(true);
     setResult(null);
+    setNaisAgents(null);
+    setNaisAgentsError(null);
     setNetworkError(null);
     setRawOpen(false);
 
@@ -238,6 +254,22 @@ function ValidateInner() {
       setNetworkError(`Failed to reach the NAIS resolver: ${msg}`);
     } finally {
       setLoading(false);
+    }
+
+    // Fetch /.well-known/nais-agents.json (best-effort, non-blocking)
+    try {
+      const agentsRes = await fetch(
+        `https://${trimmed}/.well-known/nais-agents.json`,
+        { headers: { Accept: 'application/json' } }
+      );
+      if (agentsRes.ok) {
+        const agentsData: NaisAgents = await agentsRes.json();
+        setNaisAgents(agentsData);
+      } else {
+        setNaisAgentsError(`HTTP ${agentsRes.status}`);
+      }
+    } catch {
+      setNaisAgentsError('Not found or unreachable');
     }
   }, [router]);
 
@@ -551,7 +583,44 @@ function ValidateInner() {
               );
             })()}
 
-            {/* 6. Validation Messages */}
+            {/* 6. Linked Agents (nais-agents.json) */}
+            <Section title="Linked Agents">
+              {naisAgents && naisAgents.linked_agents && naisAgents.linked_agents.length > 0 ? (
+                <div className="space-y-3">
+                  <p className="text-xs text-slate-500 mb-3">
+                    From <code className="font-mono text-xs bg-slate-100 rounded px-1.5 py-0.5">/.well-known/nais-agents.json</code>
+                  </p>
+                  {naisAgents.linked_agents.map((agent, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      {agent.verified ? <IconOk /> : <IconGray />}
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-mono text-sm font-medium text-slate-800">{agent.domain}</span>
+                          {agent.role && (
+                            <span className="inline-block rounded-full bg-slate-100 text-slate-600 text-xs px-2 py-0.5 font-medium">{agent.role}</span>
+                          )}
+                          {agent.verified && (
+                            <span className="inline-block rounded-full bg-green-50 border border-green-200 text-green-700 text-xs px-2 py-0.5 font-medium">Verified</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : naisAgentsError ? (
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <IconGray />
+                  <span>nais-agents.json not available ({naisAgentsError})</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <IconGray />
+                  <span>No linked agents declared</span>
+                </div>
+              )}
+            </Section>
+
+            {/* 7. Validation Messages */}
             {result.manifest.validation && (result.manifest.validation.errors.length > 0 || result.manifest.validation.warnings.length > 0) && (
               <Section title="Validation Messages">
                 <div className="space-y-2">
@@ -571,7 +640,7 @@ function ValidateInner() {
               </Section>
             )}
 
-            {/* 7. Raw Response */}
+            {/* 8. Raw Response */}
             <div className="rounded-xl border border-slate-200 overflow-hidden">
               <button
                 onClick={() => setRawOpen(o => !o)}
