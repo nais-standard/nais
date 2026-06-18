@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nais.id/schema/agent.json",
+  "title": "NAIS Agent Card",
+  "description": "JSON Schema for the Network Agent Identity Standard (NAIS) 1.0 agent card. Validates the agent.json file published at /.well-known/agent.json. Every card MUST carry a mandatory detached EdDSA (Ed25519) JWS over its canonical body; the signing key fingerprint is published in the _agent DNS TXT record (k= field) and MUST equal signature.kid.",
+  "type": "object",
+  "required": ["nais", "cardVersion", "updated", "name", "domain", "signature"],
+  "additionalProperties": false,
+  "properties": {
+    "nais": {
+      "type": "string",
+      "description": "The NAIS spec version this card conforms to.",
+      "pattern": "^1\\.[0-9]+$",
+      "examples": ["1.0"]
+    },
+    "cardVersion": {
+      "type": "integer",
+      "description": "Monotonically increasing version of this card. Increment whenever the card content changes so that caches and registries can detect updates.",
+      "minimum": 1
+    },
+    "updated": {
+      "type": "string",
+      "description": "ISO 8601 timestamp of when this card was last updated.",
+      "format": "date-time"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable display name for the agent.",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "domain": {
+      "type": "string",
+      "description": "The canonical domain identity of the agent. MUST match the domain where the card is published and the domain used for resolution.",
+      "minLength": 1,
+      "examples": ["weatheragent.nais.id", "myagent.example.org"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the agent's purpose and behavior.",
+      "maxLength": 4096
+    },
+    "tags": {
+      "type": "array",
+      "description": "Free-form tags for discovery and categorization. Tags are advisory hints used to narrow down agents in a catalog; they carry no normative meaning. (Replaces the removed 'capabilities' field.)",
+      "items": {
+        "type": "string",
+        "maxLength": 64
+      },
+      "maxItems": 32,
+      "uniqueItems": true
+    },
+    "contact": {
+      "type": "string",
+      "description": "Contact email or URL for the agent operator.",
+      "maxLength": 256
+    },
+    "mcp": {
+      "type": "string",
+      "description": "URL of the agent's MCP (Model Context Protocol) endpoint.",
+      "format": "uri"
+    },
+    "auth": {
+      "type": "array",
+      "description": "Authentication schemes accepted by the agent, in order of preference. Absent or [{\"scheme\":\"none\"}] means no authentication is required.",
+      "items": { "$ref": "#/$defs/AuthEntry" }
+    },
+    "payment": { "$ref": "#/$defs/Payment" },
+    "mcpSnapshot": { "$ref": "#/$defs/McpSnapshot" },
+    "signature": { "$ref": "#/$defs/Signature" }
+  },
+  "$defs": {
+    "AuthEntry": {
+      "type": "object",
+      "description": "A single accepted authentication scheme.",
+      "required": ["scheme"],
+      "additionalProperties": true,
+      "properties": {
+        "scheme": {
+          "type": "string",
+          "description": "The authentication scheme.",
+          "enum": ["none", "wallet", "bearer"]
+        },
+        "chains": {
+          "type": "array",
+          "description": "For wallet auth: blockchain networks accepted for signature challenges.",
+          "items": { "type": "string" }
+        },
+        "challenge_endpoint": {
+          "type": "string",
+          "description": "Endpoint that issues authentication challenges.",
+          "format": "uri"
+        }
+      }
+    },
+    "Payment": {
+      "type": "object",
+      "description": "Payment configuration. payTo lives inside the signed card body; clients MUST verify the card signature before using any payTo address. x402 payments are irreversible.",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Payment protocol. Only x402 is defined in NAIS 1.0.",
+          "enum": ["x402"]
+        },
+        "networks": {
+          "type": "array",
+          "description": "Blockchain networks accepted for payment.",
+          "items": { "type": "string" },
+          "examples": [["base"]]
+        },
+        "assets": {
+          "type": "array",
+          "description": "Accepted payment assets / token symbols.",
+          "items": { "type": "string" },
+          "examples": [["USDC"]]
+        },
+        "payTo": {
+          "type": "array",
+          "description": "Payment receiving address(es). Bound to the identity key by the card signature.",
+          "items": {
+            "type": "string",
+            "pattern": "^0x[a-fA-F0-9]{40}$"
+          },
+          "minItems": 1
+        },
+        "pricing": {
+          "description": "Either a single flat price string applied to every tool, or a map of tool name to price string. Prices are decimal strings denominated in the first listed asset.",
+          "oneOf": [
+            { "type": "string", "examples": ["0.001"] },
+            {
+              "type": "object",
+              "additionalProperties": { "type": "string" },
+              "examples": [{ "forecast": "0.001", "alerts": "0.0005" }]
+            }
+          ]
+        }
+      }
+    },
+    "McpSnapshot": {
+      "type": "object",
+      "description": "An advisory snapshot derived from the MCP endpoint's live tools/list at generation time. The snapshot is ADVISORY for discovery; the live MCP tools/list is AUTHORITATIVE. toolsHash lets clients detect a stale or altered snapshot.",
+      "required": ["capturedAt", "toolsHash", "tools"],
+      "additionalProperties": false,
+      "properties": {
+        "capturedAt": {
+          "type": "string",
+          "description": "ISO 8601 timestamp of when the tools/list was captured.",
+          "format": "date-time"
+        },
+        "toolsHash": {
+          "type": "string",
+          "description": "sha256:<hex> over the canonical JSON of the tools array.",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "tools": {
+          "type": "array",
+          "description": "Trimmed copy of the tools reported by tools/list, sorted by name ascending.",
+          "items": { "$ref": "#/$defs/SnapshotTool" }
+        }
+      }
+    },
+    "SnapshotTool": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Tool name as reported by the MCP server.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the tool.",
+          "maxLength": 4096
+        },
+        "inputSchema": {
+          "type": "object",
+          "description": "JSON Schema for the tool's input, as reported by the MCP server (may be trimmed)."
+        }
+      }
+    },
+    "Signature": {
+      "type": "object",
+      "description": "Mandatory detached EdDSA (Ed25519) JWS over the card's canonical JSON body (the card with the signature member removed, canonicalized per the NAIS profile of RFC 8785 / JCS). The kid MUST equal the k= fingerprint published in the _agent DNS TXT record.",
+      "required": ["alg", "kid", "jws"],
+      "additionalProperties": false,
+      "properties": {
+        "alg": {
+          "type": "string",
+          "description": "Signature algorithm. NAIS 1.0 defines EdDSA (Ed25519).",
+          "const": "EdDSA"
+        },
+        "kid": {
+          "type": "string",
+          "description": "Signing key id: 'ed25519:' followed by the base64url-encoded 32-byte Ed25519 public key. Equals the DNS k= value.",
+          "pattern": "^ed25519:[A-Za-z0-9_-]{43}$"
+        },
+        "jws": {
+          "type": "string",
+          "description": "Detached compact JWS: BASE64URL(protected header) '..' BASE64URL(signature). The payload segment is empty (detached, RFC 7515 Appendix F).",
+          "pattern": "^[A-Za-z0-9_-]+\\.\\.[A-Za-z0-9_-]+$"
+        }
+      }
+    }
+  }
+}

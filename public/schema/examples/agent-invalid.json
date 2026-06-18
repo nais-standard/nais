@@ -1,0 +1,32 @@
+{
+  "_comment": "Intentionally invalid for testing validators against the NAIS 1.0 schema. Problems: wrong nais version pattern, cardVersion not an integer, empty name, missing required domain, deprecated 'capabilities' field, payment.payTo malformed and pricing wrong type, mcpSnapshot.toolsHash malformed, and the MANDATORY signature is missing.",
+
+  "nais": "nais/0.1",
+  "cardVersion": "seven",
+  "updated": "last tuesday",
+  "name": "",
+
+  "capabilities": [
+    { "name": "current_weather" }
+  ],
+
+  "auth": [
+    { "scheme": "telepathy" }
+  ],
+
+  "payment": {
+    "type": "bitcoin",
+    "payTo": ["not-a-real-address"],
+    "pricing": 0.001
+  },
+
+  "mcpSnapshot": {
+    "capturedAt": "2026-06-17T00:00:00Z",
+    "toolsHash": "md5:nope",
+    "tools": [
+      { "description": "missing required name" }
+    ]
+  },
+
+  "secret_field": "should not be here"
+}
