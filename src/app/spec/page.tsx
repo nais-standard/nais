@@ -60,6 +60,11 @@ const CARD_FULL = `{
     "pricing": { "summarize": "0.001", "translate": "0.0005" }
   },
 
+  "linkedAgents": [
+    { "domain": "translate.example.com", "relation": "provider", "name": "Translation Service", "verified": true },
+    { "domain": "search.partner.org", "relation": "partner", "name": "Web Search", "verified": false }
+  ],
+
   "mcpSnapshot": {
     "capturedAt": "2026-06-11T10:00:00Z",
     "toolsHash": "sha256:7f3a91c4e8b2d6f0a1c5e9b3d7f2a8c4e6b0d9f3a7c1e5b9d3f7a2c8e4b6d0f9",
@@ -333,9 +338,35 @@ export default function SpecPage() {
             <tr><td><code>mcp</code></td><td>string (URL)</td><td>No</td><td>URL to the MCP endpoint.</td></tr>
             <tr><td><code>auth</code></td><td>object[]</td><td>No</td><td>Accepted auth schemes, e.g. <code>[{'{ "scheme": "none" }'}]</code>. See Auth section.</td></tr>
             <tr><td><code>payment</code></td><td>object</td><td>No</td><td>Payment configuration; <code>payTo</code> is bound to the identity key. See Payment section.</td></tr>
+            <tr><td><code>linkedAgents</code></td><td>object[]</td><td>No</td><td>Pointers to related agents (partners, providers, fallbacks). Advisory only. See <a href="#linked-agents">Linked Agents</a>.</td></tr>
             <tr><td><code>mcpSnapshot</code></td><td>object</td><td>No</td><td>Advisory snapshot of the live <code>tools/list</code>. See <a href="#mcp-snapshot">MCP Snapshot</a>.</td></tr>
           </tbody>
         </table>
+
+        <h3 id="linked-agents">Linked Agents</h3>
+        <p>
+          A card MAY list other NAIS agents it relates to via <code>linkedAgents</code> — for example
+          an upstream <code>provider</code> it depends on, a business <code>partner</code>, or a{' '}
+          <code>fallback</code> to use when this agent is unavailable. Each entry is a small object:
+        </p>
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>domain</code></td><td>string</td><td>Yes</td><td>Canonical domain of the linked agent. Resolve and verify it independently, like any other NAIS agent.</td></tr>
+            <tr><td><code>relation</code></td><td>string</td><td>Yes</td><td>One of <code>partner</code>, <code>provider</code>, <code>affiliate</code>, <code>fallback</code>, <code>recommended</code>.</td></tr>
+            <tr><td><code>verified</code></td><td>boolean</td><td>No</td><td>The operator&apos;s attestation of an established, confirmed relationship (<code>true</code>) versus a mere mention (<code>false</code>).</td></tr>
+            <tr><td><code>name</code></td><td>string</td><td>No</td><td>Human-readable display name for the linked agent.</td></tr>
+          </tbody>
+        </table>
+        <div className="callout">
+          <strong>Links confer no trust.</strong> <code>linkedAgents</code> is advisory metadata. Because
+          it lives inside the signed card, it is authentic to <em>this</em> operator — but a link is not a
+          credential for the agent it points at. A client MUST resolve and verify each linked agent&apos;s
+          own signed card before relying on it, and <code>verified: true</code> is the operator&apos;s
+          claim, never a substitute for that cryptographic check.
+        </div>
       </section>
 
       {/* Signature */}

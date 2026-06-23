@@ -66,10 +66,46 @@
       "items": { "$ref": "#/$defs/AuthEntry" }
     },
     "payment": { "$ref": "#/$defs/Payment" },
+    "linkedAgents": {
+      "type": "array",
+      "description": "Optional pointers to other NAIS agents related to this one (e.g. siblings run by the same operator, or a successor that replaces it). Links are ADVISORY and confer NO trust: a client MUST resolve and verify each linked agent's own signed card independently. Listing a domain here does not vouch for it.",
+      "items": { "$ref": "#/$defs/LinkedAgent" },
+      "maxItems": 64,
+      "uniqueItems": true
+    },
     "mcpSnapshot": { "$ref": "#/$defs/McpSnapshot" },
     "signature": { "$ref": "#/$defs/Signature" }
   },
   "$defs": {
+    "LinkedAgent": {
+      "type": "object",
+      "description": "A pointer to another NAIS agent related to this one. Advisory only: a link confers no trust, and a client MUST independently resolve and verify the linked domain's own card before relying on it.",
+      "required": ["domain", "relation"],
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string",
+          "description": "Canonical domain identity of the linked agent. Resolve and verify it independently, exactly like any other NAIS agent.",
+          "minLength": 1,
+          "examples": ["alerts.weatheragent.nais.id"]
+        },
+        "relation": {
+          "type": "string",
+          "description": "How the linked agent relates to this one. 'partner': a business partner agent. 'provider': an upstream service or data provider this agent depends on. 'affiliate': an affiliated agent (e.g. revenue-sharing). 'fallback': an alternate agent to use if this one is unavailable. 'recommended': an agent this operator recommends without a formal relationship.",
+          "enum": ["partner", "provider", "affiliate", "fallback", "recommended"]
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "The operator's attestation that it has an established, confirmed relationship with the linked agent (true), versus a mere mention or recommendation (false). This is the operator's signed claim and does NOT replace cryptographic verification: a client MUST still resolve and verify the linked agent's own card before relying on it."
+        },
+        "name": {
+          "type": "string",
+          "description": "Optional human-readable display name for the linked agent.",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
     "AuthEntry": {
       "type": "object",
       "description": "A single accepted authentication scheme.",

@@ -1,73 +1,153 @@
 {
-  "nais": "1.0",
-  "cardVersion": 7,
-  "updated": "2026-06-17T00:00:00Z",
-  "name": "WeatherAgent",
-  "domain": "weatheragent.nais.id",
-  "description": "A demonstration NAIS-compliant weather agent providing current conditions, multi-day forecasts, and severe weather alerts for any location worldwide.",
-  "tags": ["weather", "forecast", "climate", "alerts", "geospatial", "demo"],
-  "contact": "demo@nais.id",
-  "mcp": "https://weatheragent.nais.id/mcp",
-  "auth": [
-    { "scheme": "none" }
-  ],
-  "payment": {
-    "type": "x402",
-    "networks": ["base"],
-    "assets": ["USDC"],
-    "payTo": ["0x742d35Cc6634C0532925a3b8D4C9B7F1A2e3d4E5"],
-    "pricing": {
-      "forecast": "0.001",
-      "current_weather": "0.0005",
-      "alerts": "0.0005"
+    "nais": "1.0",
+    "cardVersion": 8,
+    "updated": "2026-06-17T00:00:00Z",
+    "name": "WeatherAgent",
+    "domain": "weatheragent.nais.id",
+    "description": "A demonstration NAIS-compliant weather agent providing current conditions, multi-day forecasts, and severe weather alerts for any location worldwide.",
+    "tags": [
+        "weather",
+        "forecast",
+        "climate",
+        "alerts",
+        "geospatial",
+        "demo"
+    ],
+    "contact": "demo@nais.id",
+    "mcp": "https://weatheragent.nais.id/mcp",
+    "auth": [
+        {
+            "scheme": "none"
+        }
+    ],
+    "payment": {
+        "type": "x402",
+        "networks": [
+            "base"
+        ],
+        "assets": [
+            "USDC"
+        ],
+        "payTo": [
+            "0x742d35Cc6634C0532925a3b8D4C9B7F1A2e3d4E5"
+        ],
+        "pricing": {
+            "forecast": "0.001",
+            "current_weather": "0.0005",
+            "alerts": "0.0005"
+        }
+    },
+    "linkedAgents": [
+        {
+            "domain": "alerts.weatheragent.nais.id",
+            "relation": "partner",
+            "name": "Severe Weather Alerts",
+            "verified": true
+        },
+        {
+            "domain": "geocode.nais.id",
+            "relation": "provider",
+            "name": "Geocoding Service",
+            "verified": true
+        },
+        {
+            "domain": "radar.example.org",
+            "relation": "recommended",
+            "name": "Community Radar",
+            "verified": false
+        }
+    ],
+    "mcpSnapshot": {
+        "capturedAt": "2026-06-17T00:00:00Z",
+        "toolsHash": "sha256:16852823357521116bedaaa6a6bea8cf4053248840a02cee249d9f76ee76a1a8",
+        "tools": [
+            {
+                "name": "alerts",
+                "description": "Get active severe weather alerts for a region. Returns empty array if no active alerts.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "City name, region, state/country code, or \"lat,lon\""
+                        },
+                        "severity": {
+                            "type": "string",
+                            "enum": [
+                                "all",
+                                "extreme",
+                                "severe",
+                                "moderate",
+                                "minor"
+                            ],
+                            "default": "all"
+                        }
+                    },
+                    "required": [
+                        "location"
+                    ]
+                }
+            },
+            {
+                "name": "current_weather",
+                "description": "Get real-time current weather conditions for any location.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "City name, \"City, Country\", or \"lat,lon\""
+                        },
+                        "units": {
+                            "type": "string",
+                            "enum": [
+                                "metric",
+                                "imperial"
+                            ],
+                            "default": "metric"
+                        }
+                    },
+                    "required": [
+                        "location"
+                    ]
+                }
+            },
+            {
+                "name": "forecast",
+                "description": "Get a multi-day weather forecast (up to 10 days) for any location worldwide.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "location": {
+                            "type": "string",
+                            "description": "City name, \"City, Country\", or \"lat,lon\""
+                        },
+                        "days": {
+                            "type": "integer",
+                            "description": "Number of forecast days (1-10). Default: 5.",
+                            "minimum": 1,
+                            "maximum": 10,
+                            "default": 5
+                        },
+                        "units": {
+                            "type": "string",
+                            "enum": [
+                                "metric",
+                                "imperial"
+                            ],
+                            "default": "metric"
+                        }
+                    },
+                    "required": [
+                        "location"
+                    ]
+                }
+            }
+        ]
+    },
+    "signature": {
+        "alg": "EdDSA",
+        "kid": "ed25519:oc5a92N1h1Vg9PlnM8CrB0MAw3mMddFhZTrVuMkzceQ",
+        "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImVkMjU1MTk6b2M1YTkyTjFoMVZnOVBsbk04Q3JCME1BdzNtTWRkRmhaVHJWdU1remNlUSJ9..bsRSzijaKjDSxxKFXTg-NgLw_r1i6SB2AF_8h4X5AZd-ghbXFd1XSYk68AHp0gMs3v3JRWrhScrp7gYfaqpmBg"
     }
-  },
-  "mcpSnapshot": {
-    "capturedAt": "2026-06-17T00:00:00Z",
-    "toolsHash": "sha256:16852823357521116bedaaa6a6bea8cf4053248840a02cee249d9f76ee76a1a8",
-    "tools": [
-      {
-        "name": "alerts",
-        "description": "Get active severe weather alerts for a region. Returns empty array if no active alerts.",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "location": { "type": "string", "description": "City name, region, state/country code, or \"lat,lon\"" },
-            "severity": { "type": "string", "enum": ["all", "extreme", "severe", "moderate", "minor"], "default": "all" }
-          },
-          "required": ["location"]
-        }
-      },
-      {
-        "name": "current_weather",
-        "description": "Get real-time current weather conditions for any location.",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "location": { "type": "string", "description": "City name, \"City, Country\", or \"lat,lon\"" },
-            "units": { "type": "string", "enum": ["metric", "imperial"], "default": "metric" }
-          },
-          "required": ["location"]
-        }
-      },
-      {
-        "name": "forecast",
-        "description": "Get a multi-day weather forecast (up to 10 days) for any location worldwide.",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "location": { "type": "string", "description": "City name, \"City, Country\", or \"lat,lon\"" },
-            "days": { "type": "integer", "description": "Number of forecast days (1-10). Default: 5.", "minimum": 1, "maximum": 10, "default": 5 },
-            "units": { "type": "string", "enum": ["metric", "imperial"], "default": "metric" }
-          },
-          "required": ["location"]
-        }
-      }
-    ]
-  },
-  "signature": {
-    "alg": "EdDSA",
-    "kid": "ed25519:oc5a92N1h1Vg9PlnM8CrB0MAw3mMddFhZTrVuMkzceQ",
-    "jws": "eyJhbGciOiJFZERTQSIsImtpZCI6ImVkMjU1MTk6b2M1YTkyTjFoMVZnOVBsbk04Q3JCME1BdzNtTWRkRmhaVHJWdU1remNlUSJ9..p1BK4OjSUw-j2gs7mrXuYVuSxTlprd3LSKk2vyUX1SyjUk-uuUUt-_0N-s7_7v_FNUDQpZ9Dfb82JsXYXKeCAQ"
-  }
 }
