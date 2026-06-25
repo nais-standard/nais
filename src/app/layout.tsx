@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'NAIS Community' }],
   creator: 'NAIS Community',
+  alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -68,6 +69,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        {/* Structured data for search engines (Organization + WebSite). */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                '@context': 'https://schema.org',
+                '@type': 'Organization',
+                name: 'NAIS',
+                alternateName: 'Network Agent Identity Standard',
+                url: 'https://nais.id',
+                logo: 'https://nais.id/og-image.png',
+                description:
+                  'NAIS is an open standard for publishing AI agent identity, discovery, capabilities, and optional authentication using DNS and HTTPS.',
+              },
+              {
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                name: 'NAIS — Network Agent Identity Standard',
+                url: 'https://nais.id',
+              },
+            ]),
+          }}
+        />
         <Nav />
         <main>{children}</main>
         <Footer />
